@@ -445,7 +445,7 @@ class RecurrentTabularExplainer(LimeTabularExplainer):
                  categorical_features=None, categorical_names=None,
                  kernel_width=None, verbose=False, class_names=None,
                  feature_selection='auto', discretize_continuous=True,
-                 discretizer='quartile', random_state=None):
+                 discretizer='quartile', random_state=None, mode='classification'):
         """
         Args:
             training_data: numpy 3d array with shape
@@ -478,6 +478,7 @@ class RecurrentTabularExplainer(LimeTabularExplainer):
             random_state: an integer or numpy.RandomState that will be used to
                 generate random numbers. If None, the random state will be
                 initialized using the internal numpy seed.
+            mode: "classification" or "regression"
         """
 
         # Reshape X
@@ -490,6 +491,12 @@ class RecurrentTabularExplainer(LimeTabularExplainer):
         # Update the feature names
         feature_names = ['{}_t-{}'.format(n, n_timesteps - (i + 1))
                          for n in feature_names for i in range(n_timesteps)]
+        
+        # Update the categorical features
+        categorical_features_update = []
+        for n in categorical_features:
+            categorical_features_update.extend(range(n*n_timesteps, (n+1)*n_timesteps))
+        categorical_features = categorical_features_update
 
         # Send off the the super class to do its magic.
         super(RecurrentTabularExplainer, self).__init__(
@@ -503,7 +510,8 @@ class RecurrentTabularExplainer(LimeTabularExplainer):
                 feature_selection=feature_selection,
                 discretize_continuous=discretize_continuous,
                 discretizer=discretizer,
-                random_state=random_state)
+                random_state=random_state,
+                mode=mode)
 
     def _make_predict_proba(self, func):
         """
